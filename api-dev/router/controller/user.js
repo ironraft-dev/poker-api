@@ -1,0 +1,163 @@
+import Debugger from '../../skeleton/log';
+import * as OrientDB from "../../orient/db";
+import Response, * as Res from  "./response";
+import * as Validation from  "./validation";
+import * as Util from  "./util";
+import * as Config from  "../../config";
+const debuger = new Debugger();
+debuger.tag = "User"
+
+export function lists(req, res, next, response = new Response()){
+  OrientDB.db.class.get(OrientDB.Class.User).then(
+    (User) => {
+       User.list().then(
+         (users)=>{
+           response.code = Res.ResponseCode.Success;
+           response.data = users.map ( user => {
+             user.loginToken = "";
+             return user;
+           });
+           res.status(Res.StatusCode.Success).json(response);
+         }
+       )
+    },
+    (error) => {
+       next(Res.getDBError(error, response));
+    }
+  );
+}
+export function list(req, res, next, id = req.params.userId, response = new Response()){
+  OrientDB.db.index.get( OrientDB.Index.User).then(
+    (User) => {
+       User.get(req.params.userId).then(
+         (user)=>{
+            if(user === undefined) next(Res.getUnregisteredError(response));
+            else record(req, res, next, user.rid , response );
+         },
+         (error) => {
+            next(Res.getBadRequestError(error,Res.ResponseCode.UndefinedKey, response));
+         }
+       )
+    },
+    (error) => {
+       next(Res.getDBError(error, response));
+    }
+  );
+}
+
+export function record(req, res, next, rid = req.query.rid , response = new Response(), newLoginToken = null){
+  OrientDB.db.record.get( rid ).then(
+    (record) => {
+      let validation = Validation.checkId(req.params.userId, record.id);
+      if(validation === true){
+        if(newLoginToken == null){
+          response.code = Res.ResponseCode.Success;
+          response.data = record;
+          response.data.loginToken = "";
+          res.status(Res.StatusCode.Success).json(response);
+        }else{
+          Util.safeUpdate(record, "loginToken", newLoginToken , "string");
+          OrientDB.db.record.update(record).then(
+            (result) => {
+              response.code = Res.ResponseCode.Success;
+              response.data = record;
+              res.status(Res.StatusCode.Success).json(response);
+            },
+            (error) => {
+               next(Res.getDBError(error, response));
+            }
+          )
+        }
+      }else{
+        next(Res.getValidationError(Res.ResponseCode.ValidationUserId, response));
+      }
+    },
+    (error) => {
+       next(Res.getBadRequestError(error,Res.ResponseCode.UndefinedKey, response));
+    }
+  )
+}
+
+
+export function create(req, res, next, response = new Response()){
+  OrientDB.db.class.get(OrientDB.Class.User).then(
+    (User) => {
+       let profileImg = (req.body.profileImg !== undefined) ? req.body.profileImg :  Config.DEFAULT_PROFILE_IMAGE;
+       User.create({
+         id: req.params.userId,
+         profileImg: profileImg,
+         name: req.body.name,
+         snsToken: req.body.snsToken,
+         bank: Config.DEFAULT_BANK,
+         loginToken: Validation.getLoginToken(),
+         rank: -1
+      }).then(
+         (user)=>{
+           response.code = Res.ResponseCode.Success;
+           response.data = user;
+           res.status(Res.StatusCode.Create).json(response);
+         },
+         (error) => {
+           next(Res.getBadRequestError(error,Res.ResponseCode.DuplicatedKey, response));
+         }
+       )
+    },
+    (error) => {
+       next(Res.getDBError(error, response));
+    }
+  );
+}
+
+export function update(req, res, next, response = new Response()){
+
+  OrientDB.db.record.get( req.body.rid ).then(
+    (record) => {
+
+       var validation = Validation.checkId(req.params.userId, record.id);
+       if(validation === false){
+         next(Res.getValidationError(Res.ResponseCode.ValidationUserId, response));
+         return;
+       }
+       validation = Validation.checkLoginToken(req.headers.logintoken, record.loginToken);
+       if(validation === false){
+         next(Res.getValidationError(Res.ResponseCode.ValidationLoginToken, response));
+         return;
+       }
+       try {
+         Util.safeUpdate(record, "profileImg", req.body, "string");
+         Util.safeUpdate(record, "name", req.body, "string");
+         Util.safeUpdate(record, "snsToken", req.body, "string");
+         Util.safeUpdate(record, "bank", req.body, "number");
+         Util.safeUpdate(record, "rank", req.body, "number");
+       } catch (error){
+         next(Res.getBadRequestError(error,Res.ResponseCode.InvalidDataType, response));
+         return;
+       }
+       OrientDB.db.record.update(record).then(
+         (result) => {
+           response.code = Res.ResponseCode.Success;
+           response.data = record;
+           res.status(Res.StatusCode.Success).json(response);
+         },
+         (error) => {
+            next(Res.getDBError(error, response));
+         }
+       )
+    },
+    (error) => {
+       next(Res.getBadRequestError(error,Res.ResponseCode.UndefinedKey, response));
+    }
+  );
+}
+
+export function remove(req, res, next, response = new Response()){
+  OrientDB.db.record.delete( req.body.rid ).then(
+    (record) => {
+      response.code = Res.ResponseCode.Success;
+      res.status(Res.StatusCode.Success).json(response);
+    },
+    (error) => {
+       next(Res.getBadRequestError(error,Res.ResponseCode.UndefinedKey, response));
+    }
+  );
+}

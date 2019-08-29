@@ -1,0 +1,265 @@
+swagger: "2.0"
+info:
+  version: "0.0.2"
+  title: Poker Api
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths
+basePath: /api
+#
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+  /users:
+    x-swagger-router-controller: poker
+    get:
+
+      description: returns users
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+
+  /users/{userId}:
+    x-swagger-router-controller: poker
+    get:
+      description: returns user 
+      parameters:
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: rid
+          in: query
+          type: string
+          required: false
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+    
+    
+    post:
+      description: create new user
+     
+      parameters:
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - snsToken
+            properties:
+              profileImg:
+                type: string
+              name:
+                type: string
+              snsToken:
+                type: string
+          required: true
+
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+  
+
+    put:
+      description: create new user
+      parameters:
+        - name: loginToken
+          in: header
+          type: string
+          required: true
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - rid
+            properties:
+              rid:
+                type: string
+              profileImg:
+                type: string
+              name:
+                type: string
+              snsToken:
+                type: string
+              bank:
+                type: number
+              rank:
+                type: number
+          required: true
+
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+            
+    delete:
+      description: create new user
+      parameters:
+      
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - rid
+              - snsToken
+            properties:
+              rid:
+                type: string
+              snsToken:
+                type: string
+          required: true
+
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+  
+  /users/autosign/{userId}:
+    x-swagger-router-controller: poker
+    
+    post:
+      description: create or get user
+     
+      parameters:
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - snsToken
+            properties:
+              profileImg:
+                type: string
+              name:
+                type: string
+              snsToken:
+                type: string
+          required: true
+
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        201:
+           $ref: "#/responses/Create"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+
+
+# complex objects have schema definitions
+responses:
+  Success: 
+    description: success
+    schema:
+     $ref: "#/definitions/ApiResponse"
+  Create: 
+    description: create
+    schema:
+     $ref: "#/definitions/ApiResponse"
+  UnauthorizedError:
+    description: API key is missing or invalid
+    schema:
+     $ref: "#/definitions/ErrorResponse"
+  ClientError:
+    description: error (client)
+    schema:
+     $ref: "#/definitions/ErrorResponse"
+  ServerError:
+    description: error (server)
+    schema:
+     $ref: "#/definitions/ErrorResponse"
+        
+definitions:
+  ApiResponse:
+    required:
+      - code
+      - data
+    properties:
+      code:
+        $ref: "#/definitions/SuccessCode"
+      data:
+        type: object
+      message:
+        type: string
+  ErrorResponse:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        $ref: "#/definitions/ErrorCode"
+      message:
+        type: string
+  ErrorCode:
+    type: string
+    enum: &E_CODE
+      - '901'
+      - '902'
+      - '903'
+      - '904'
+      - '905'    
+      - '906'   
+  SuccessCode:
+    type: string
+    enum: &S_CODE
+      - '200'
