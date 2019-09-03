@@ -36,5 +36,11 @@ router.use(function (req, res, next) {
 router.put('/users/:userId', function (req, res, next) {
   return User.update(req, res, next);
 });
+router.put('/users/update/:serverId', function (req, res, next) {
+  return User.updateValues(req, res, next);
+});
+router.put('/users/changebank/:serverId', function (req, res, next) {
+  return User.changeBanks(req, res, next);
+});
 var _default = router;
 exports["default"] = _default;

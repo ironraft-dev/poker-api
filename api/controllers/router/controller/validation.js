@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.checkId = checkId;
 exports.checkAuth = checkAuth;
 exports.checkLoginToken = checkLoginToken;
+exports.checkServerKey = checkServerKey;
 exports.checkAccessToken = checkAccessToken;
 exports.getLoginToken = getLoginToken;
 
@@ -38,6 +39,10 @@ function checkAuth(userId, currentUserid) {
 
 function checkLoginToken(loginToken, currentLoginToken) {
   return loginToken === currentLoginToken;
+}
+
+function checkServerKey(serverId, serverKey) {
+  return serverKey === Config.SERVER_KEY;
 }
 
 function checkAccessToken(_x, _x2) {

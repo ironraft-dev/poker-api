@@ -17,6 +17,10 @@ export function checkLoginToken (loginToken, currentLoginToken) {
   return loginToken === currentLoginToken;
 }
 
+export function checkServerKey (serverId, serverKey) {
+  return serverKey === Config.SERVER_KEY;
+}
+
 export async function checkAccessToken (token, callback) {
   try {
     const response = await axios.get(Config.FACEBOOK_DEBUG_TOKEN_API,  {
