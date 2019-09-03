@@ -17,4 +17,6 @@ router.use((req, res, next) => {
 });
 
 router.put('/users/:userId', (req, res, next) => User.update(req, res, next));
+router.put('/users/update/:serverId', (req, res, next) => User.updateValues(req, res, next));
+router.put('/users/changebank/:serverId', (req, res, next) => User.changeBanks(req, res, next));
 export default router;

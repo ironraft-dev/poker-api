@@ -11,8 +11,10 @@ exports.lists = lists;
 exports.list = list;
 exports.record = record;
 exports.create = create;
-exports.update = update;
 exports.remove = remove;
+exports.update = update;
+exports.updateValues = updateValues;
+exports.changeBanks = changeBanks;
 
 var _log = _interopRequireDefault(require("../../skeleton/log"));
 
@@ -114,6 +116,16 @@ function create(req, res, next) {
   });
 }
 
+function remove(req, res, next) {
+  var response = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : new Res["default"]();
+  OrientDB.db.record["delete"](req.body.rid).then(function (record) {
+    response.code = Res.ResponseCode.Success;
+    res.status(Res.StatusCode.Success).json(response);
+  }, function (error) {
+    next(Res.getBadRequestError(error, Res.ResponseCode.UndefinedKey, response));
+  });
+}
+
 function update(req, res, next) {
   var response = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : new Res["default"]();
   OrientDB.db.record.get(req.body.rid).then(function (record) {
@@ -154,12 +166,99 @@ function update(req, res, next) {
   });
 }
 
-function remove(req, res, next) {
+function updateValues(req, res, next) {
   var response = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : new Res["default"]();
-  OrientDB.db.record["delete"](req.body.rid).then(function (record) {
+  var validation = Validation.checkServerKey(req.params.serverId, req.headers.serverkey);
+
+  if (validation === false) {
+    next(Res.getValidationError(Res.ResponseCode.ValidationServerKey, response));
+    return;
+  }
+
+  var users = req.body;
+  var errors = [];
+  var total = users.length;
+  var completed = 0;
+  users.forEach(function (user) {
+    OrientDB.db.record.get(user.rid).then(function (record) {
+      try {
+        Util.safeUpdate(record, req.query.key, user.value, req.query.dataType);
+        OrientDB.db.record.update(record).then(function (result) {
+          updateCompleted();
+        }, function (error) {
+          errors.push(user);
+          debuger.error(user, "user updates record error -> " + Date.now().toString());
+          updateCompleted();
+        });
+      } catch (error) {
+        errors.push(user);
+        debuger.error(user, "user updates type error -> " + Date.now().toString());
+        updateCompleted();
+      }
+    }, function (error) {
+      errors.push(user);
+      debuger.error(user, "user updates db error -> " + Date.now().toString());
+      updateCompleted();
+    });
+  });
+
+  function updateCompleted() {
+    completed++;
+    if (completed !== total) return;
+    updateAllCompleted(errors, res, response);
+  }
+}
+
+function changeBanks(req, res, next) {
+  var response = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : new Res["default"]();
+  var validation = Validation.checkServerKey(req.params.serverId, req.headers.serverkey);
+
+  if (validation === false) {
+    next(Res.getValidationError(Res.ResponseCode.ValidationServerKey, response));
+    return;
+  }
+
+  var users = req.body;
+  var errors = [];
+  var total = users.length;
+  var completed = 0;
+  users.forEach(function (user) {
+    OrientDB.db.record.get(user.rid).then(function (record) {
+      Util.safeUpdate(record, "bank", record.bank + user.bank, "number");
+      OrientDB.db.record.update(record).then(function (result) {
+        changeBankCompleted();
+      }, function (error) {
+        errors.push(user);
+        debuger.error(user, "user change bank error -> " + Date.now().toString());
+        changeBankCompleted();
+      });
+    }, function (error) {
+      errors.push(user);
+      debuger.error(user, "user change bank db error -> " + Date.now().toString());
+      changeBankCompleted();
+    });
+  });
+
+  function changeBankCompleted() {
+    completed++;
+    if (completed !== total) return;
+    updateAllCompleted(errors, res, response);
+  }
+}
+
+function updateAllCompleted(errors, res, response) {
+  debuger.log(errors.length, "errors.length");
+
+  if (errors.length > 0) {
+    response.code = Res.ResponseCode.DBError;
+    response.message = "conflicted updated";
+    response.data = errors;
+    next({
+      statusCode: Res.StatusCode.Conflict,
+      response: response
+    });
+  } else {
     response.code = Res.ResponseCode.Success;
     res.status(Res.StatusCode.Success).json(response);
-  }, function (error) {
-    next(Res.getBadRequestError(error, Res.ResponseCode.UndefinedKey, response));
-  });
+  }
 }

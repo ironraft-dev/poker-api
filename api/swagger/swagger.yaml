@@ -202,6 +202,95 @@ paths:
           $ref: "#/responses/ClientError"
         500:
           $ref: "#/responses/ServerError"
+          
+  /users/update/{serverId}:
+    x-swagger-router-controller: poker
+    put:
+      description: update users
+      parameters:
+        - name: serverId
+          in: path
+          type: string
+          required: true
+        - name: key
+          in: query
+          type: string
+          required: true
+        - name: dataType
+          in: query
+          type: string
+          required: true
+        - name: serverkey
+          in: header
+          type: string
+          required: true
+        - name: users
+          in: body
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+                - rid
+                - value
+              properties:
+                rid:
+                  type: string
+                value:
+                  type: object
+          required: true
+      responses:
+        401:
+           $ref: "#/responses/UnauthorizedError"
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        409:
+          $ref: "#/responses/ConflictedError"
+        500:
+          $ref: "#/responses/ServerError"
+          
+  /users/changebank/{serverId}:
+    x-swagger-router-controller: poker
+    put:
+      description: update users bank
+      parameters:
+        - name: serverId
+          in: path
+          type: string
+          required: true
+        - name: serverkey
+          in: header
+          type: string
+          required: true
+        - name: users
+          in: body
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+                - rid
+                - bank
+              properties:
+                rid:
+                  type: string
+                bank:
+                  type: number
+          required: true
+      responses:
+        401:
+           $ref: "#/responses/UnauthorizedError"
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        409:
+          $ref: "#/responses/ConflictedError"
+        500:
+          $ref: "#/responses/ServerError"
+          
   /swagger:
     x-swagger-pipe: swagger_raw
 
@@ -218,6 +307,10 @@ responses:
      $ref: "#/definitions/ApiResponse"
   UnauthorizedError:
     description: API key is missing or invalid
+    schema:
+     $ref: "#/definitions/ErrorResponse"
+  ConflictedError:
+    description: conflicted updated
     schema:
      $ref: "#/definitions/ErrorResponse"
   ClientError:

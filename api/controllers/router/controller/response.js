@@ -46,7 +46,8 @@ var ResponseCode = Object.freeze({
   UnauthorizedAccessToken: '906',
   ValidationUserId: '907',
   ValidationLoginToken: '908',
-  UnregisteredData: '909'
+  ValidationServerKey: '909',
+  UnregisteredData: '910'
 });
 exports.ResponseCode = ResponseCode;
 
