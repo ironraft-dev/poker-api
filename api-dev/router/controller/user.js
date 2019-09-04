@@ -219,7 +219,7 @@ export function changeBanks(req, res, next, response = new Response()){
   users.forEach( (user) => {
     OrientDB.db.record.get( user.rid ).then(
       (record) => {
-         Util.safeUpdate(record, "bank" , (record.bank+user.bank) , "number");
+         Util.safeUpdate(record, "bank" , (record.bank+user.changeBank) , "number");
          OrientDB.db.record.update(record).then(
            (result) => {
               changeBankCompleted();

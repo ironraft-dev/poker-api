@@ -224,7 +224,7 @@ function changeBanks(req, res, next) {
   var completed = 0;
   users.forEach(function (user) {
     OrientDB.db.record.get(user.rid).then(function (record) {
-      Util.safeUpdate(record, "bank", record.bank + user.bank, "number");
+      Util.safeUpdate(record, "bank", record.bank + user.changeBank, "number");
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {
@@ -247,8 +247,6 @@ function changeBanks(req, res, next) {
 }
 
 function updateAllCompleted(errors, res, response) {
-  debuger.log(errors.length, "errors.length");
-
   if (errors.length > 0) {
     response.code = Res.ResponseCode.DBError;
     response.message = "conflicted updated";

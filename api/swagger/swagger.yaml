@@ -272,11 +272,11 @@ paths:
               type: object
               required:
                 - rid
-                - bank
+                - changeBank
               properties:
                 rid:
                   type: string
-                bank:
+                changeBank:
                   type: number
           required: true
       responses:
