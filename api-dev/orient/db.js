@@ -10,12 +10,15 @@ const dbServer = OrientDB({
 
 
 export const Class = Object.freeze ({
-	User: "User"
+	User: "User",
+  Rank: "Rank",
+  RankInfo: "RankInfo"
 });
 
 export const Index = Object.freeze ({
 	User: "User.id",
-  UserToken: "User.snsToken"
+  UserToken: "User.snsToken",
+  RankId: ".userId"
 });
 
 

@@ -1,18 +1,18 @@
 "use strict";
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.log = _log;
-exports.default = void 0;
+exports["default"] = void 0;
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 var colors = require('colors');
 
@@ -32,12 +32,11 @@ var Debugger =
 /*#__PURE__*/
 function () {
   function Debugger() {
-    _classCallCheck(this, Debugger);
-
+    (0, _classCallCheck2["default"])(this, Debugger);
     this.tag = '';
   }
 
-  _createClass(Debugger, [{
+  (0, _createClass2["default"])(Debugger, [{
     key: "info",
     value: function info(value) {
       var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -71,7 +70,6 @@ function () {
       _log(this.tag, 'warn', value, key);
     }
   }]);
-
   return Debugger;
 }();
 
@@ -79,15 +77,13 @@ exports["default"] = Debugger;
 
 function _log(tag, debugType, value) {
   var key = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
-
-  var type = _typeof(value);
-
+  var type = (0, _typeof2["default"])(value);
   var header = '[' + tag + ']' + (key != '' ? " " + key : "") + ' -> ';
 
   if (type == 'object') {
-    console[debugType](header.prompt);
+    console[debugType](header.prompt + " [" + Date.now().toString() + "]");
     console.dir(value);
   } else {
-    console[debugType](header.prompt + String(value)[debugType]);
+    console[debugType](header.prompt + String(value)[debugType] + " [" + Date.now().toString() + "]");
   }
 }

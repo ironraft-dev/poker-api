@@ -21,6 +21,8 @@ var Validation = _interopRequireWildcard(require("./controller/validation"));
 
 var User = _interopRequireWildcard(require("./controller/user"));
 
+var Rank = _interopRequireWildcard(require("./controller/rank"));
+
 var router = _express["default"].Router();
 
 var debuger = new _log["default"]();
@@ -32,6 +34,9 @@ router.use(function (req, res, next) {
   }
 
   next();
+});
+router.put('/ranks/add/:serverId', function (req, res, next) {
+  return Rank.addRank(req, res, next);
 });
 router.put('/users/:userId', function (req, res, next) {
   return User.update(req, res, next);

@@ -102,6 +102,7 @@ function create(req, res, next) {
       name: req.body.name,
       snsToken: req.body.snsToken,
       bank: Config.DEFAULT_BANK,
+      getBank: 0,
       loginToken: Validation.getLoginToken(),
       rank: -1
     }).then(function (user) {
@@ -187,17 +188,17 @@ function updateValues(req, res, next) {
           updateCompleted();
         }, function (error) {
           errors.push(user);
-          debuger.error(user, "user updates record error -> " + Date.now().toString());
+          debuger.error(user, "user updates record error");
           updateCompleted();
         });
       } catch (error) {
         errors.push(user);
-        debuger.error(user, "user updates type error -> " + Date.now().toString());
+        debuger.error(user, "user updates type error");
         updateCompleted();
       }
     }, function (error) {
       errors.push(user);
-      debuger.error(user, "user updates db error -> " + Date.now().toString());
+      debuger.error(user, "user updates db error");
       updateCompleted();
     });
   });
@@ -224,17 +225,18 @@ function changeBanks(req, res, next) {
   var completed = 0;
   users.forEach(function (user) {
     OrientDB.db.record.get(user.rid).then(function (record) {
+      Util.safeUpdate(record, "getBank", record.getBank + user.changeBank, "number");
       Util.safeUpdate(record, "bank", record.bank + user.changeBank, "number");
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {
         errors.push(user);
-        debuger.error(user, "user change bank error -> " + Date.now().toString());
+        debuger.error(user, "user change bank error");
         changeBankCompleted();
       });
     }, function (error) {
       errors.push(user);
-      debuger.error(user, "user change bank db error -> " + Date.now().toString());
+      debuger.error(user, "user change bank db error");
       changeBankCompleted();
     });
   });
