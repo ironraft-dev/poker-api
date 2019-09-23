@@ -5,56 +5,88 @@ import * as Validation from  "./validation";
 import * as Util from  "./util";
 import * as Config from  "../../config";
 const debuger = new Debugger();
-debuger.tag = "User"
+debuger.tag = "Rank"
 
 const RankGroupStatus = Object.freeze ({
 	Empty: 0,
   Full: 1
 });
 
-const LIMITED_RANKS_NUM = 10;
+const UpdaterStatus = Object.freeze ({
+	Syncing: 0,
+	Updating: 1,
+  Writable: 2
+});
+
+const LIMITED_RANKS_NUM = 3;
 
 export class RankUpdater {
   constructor() {
-    this.rankInfos = [];
+	  this.queue = [];
+		this.status = UpdaterStatus.Writable;
+    this.update();
+  }
+
+	update(){
+		this.status = UpdaterStatus.Updating;
+		this.rankInfos = [];
     OrientDB.db.class.get(OrientDB.Class.RankInfo).then(
       (RankInfo) => {
          RankInfo.list().then(
            (infos) => {
              this.rankInfos = infos;
-             debuger.log("get rankInfos");
+						 this.updated();
            }
          )
       },
-      (error) => debuger.error("get rankInfos")
+      (error) => {
+				this.status = UpdaterStatus.Writable;
+				debuger.error("update rankInfos");
+			}
     );
-  }
+	}
+	updated(){
+		this.status = UpdaterStatus.Writable;
+		this.queue.forEach( (user) => { this.updateBank( user )});
+	}
+  syncStart(){
+		this.status = UpdaterStatus.Syncing;
+	}
+	syncCompleted(){
+		this.update();
+	}
 
-  updateBank(user, changeBank){
-     let prevBank = user.getBank - changeBank;
-     let compare = (i) => {
-       if( i.status == RankGroupStatus.Empty ) return true
-       return prevBank >= i.bankMin
-     }
-     let prevInfo = this.rankInfos.find( compare );
-     let info = this.rankInfos.find( compare );
-     if(info == null && prevBank == null) return;
-     if(info !== prevBank ) this.removeRank(user, prevBank);
-     this.addRank(user, prevBank);
+  updateBank(user){
+     if(this.status !== UpdaterStatus.Writable){
+			 this.queue.push(user);
+			 return;
+		 }
+
+     let prevInfo = this.rankInfos.find( rank => rank.groupId == user.rankId );
+     let info = this.rankInfos.find( rank => {
+       if( rank.status == RankGroupStatus.Empty ) return true
+       return user.getBank >= rank.bankMin
+     } );
+     debuger.log(prevInfo, "prevInfo");
+		 debuger.log(info, "info");
+     if(info == null && prevInfo == null) return;
+     if(prevInfo != null && info !== prevInfo ) this.removeRank(user, prevInfo);
+     this.addRank(user, info);
   }
 
   addRank(user, info){
     let className = OrientDB.Class.Rank + info.groupId;
     OrientDB.db.index.get( className + OrientDB.Index.RankId ).then(
       (Rank) => {
-         Rank.get(req.params.userId).then(
-           (rank) => update(rank, user),
+         Rank.get(user.rid).then(
+           (rank) => {
+						 if(rank == null) create(user,info.groupId)
+						 else update(rank, user)
+					 },
            (error) => debuger.error(error, "addRank " + user.userId)
          )
       },
-      (error) => {
-         create(user,info.groupId);
-      }
+      (error) => debuger.error(error, "addRank " + user.userId)
     );
   }
 
@@ -62,8 +94,10 @@ export class RankUpdater {
     let className = OrientDB.Class.Rank + info.groupId;
     OrientDB.db.index.get( className + OrientDB.Index.RankId ).then(
       (Rank) => {
-         Rank.get(req.params.userId).then(
-           (rank) => remove(rank),
+         Rank.get(user.rid).then(
+           (rank) => {
+						 if(rank != null) remove(rank);
+					 },
            (error) => debuger.error(error, "removeRank " + user.userId)
          )
       },
@@ -71,6 +105,7 @@ export class RankUpdater {
     );
   }
 }
+export const updater = new RankUpdater();
 
 
 export function lists(req, res, next, response = new Response()){
@@ -80,9 +115,8 @@ export function lists(req, res, next, response = new Response()){
        Rank.list().then(
          (ranks)=>{
            response.code = Res.ResponseCode.Success;
-           let compare = (a, b) => {return a.bank < b.bank};
-           ranks.sort( compare );
-           response.data = ranks;
+           let compare = (a, b) => {return b.bank - a.bank};
+           response.data = ranks.sort( compare );
            res.status(Res.StatusCode.Success).json(response);
          }
        )
@@ -91,14 +125,14 @@ export function lists(req, res, next, response = new Response()){
   );
 }
 
-var updater = new RankUpdater();
+
 export function reset(req, res, next, response = new Response()){
   let validation = Validation.checkServerKey(req.params.serverId, req.headers.serverkey);
   if(validation === false){
     next(Res.getValidationError(Res.ResponseCode.ValidationServerKey, response));
     return;
   }
-  updater = new RankUpdater();
+  updater.update();
   response.code = Res.ResponseCode.Success;
   res.status(Res.StatusCode.Success).json(response);
 }
@@ -122,87 +156,87 @@ export function addRank(req, res, next, response = new Response()){
   }
 
   let user = req.body;
-  updater.updateBank(user, user.changeBank);
+  updater.updateBank(user);
   response.code = Res.ResponseCode.Success;
   res.status(Res.StatusCode.Success).json(response);
 }
 
 function syncRankInfos(){
   debuger.log("syncRankInfos");
+	updater.syncStart();
   OrientDB.db.class.get(OrientDB.Class.RankInfo).then(
     (RankInfo) => {
        RankInfo.list().then(
-         (infos)=>{
+         	async (infos)=>{
            var remainRanks = [];
-           infos.forEach(
-             async (info) => {
-               remainRanks = await syncRanks(info, remainRanks);
-             }
-           );
-         }
-       )
-    },
-    (error) => debuger.error(error,"syncRankInfos")
-  );
-}
-
-function syncRanks(info, remainRanks){
-  debuger.log(remainRanks, "syncRank " + info.groupId);
-  let className = OrientDB.Class.Rank + info.groupId;
-  OrientDB.db.class.get(className).then(
-    (Rank) => {
-       Rank.list().then(
-         (ranks)=>{
-            ranks = ranks.concat(remainRanks);
-            if(ranks.length >= LIMITED_RANKS_NUM){
-               let compare = (a, b) => {return a.bank < b.bank};
-               ranks.sort( compare );
-               let remains = [];
-               var minBank = 0;
-               ranks.forEach( (rank, idx) => {
-                 if(idx<=LIMITED_RANKS_NUM){
-                    minBank = rank.bank;
-                    let findIdx = remainRanks.indexOf(rank);
-                    if(findIdx != -1) move(rank, info.groupId);
-                 }else{
-                    remains.push(rank);
-                    remove(rank);
-                 }
-               });
-               info.status = RankGroupStatus.Full;
-               info.bankMin = minBank;
-               updateRankInfo(info);
-               completed(remains);
-            } else {
-               if(remainRanks.length > 0) remainRanks.forEach( (rank) => { move(rank, info.groupId) } );
-               completed([]);
-            }
+					 for (const info of infos){
+			 				remainRanks = await syncRanks(info, remainRanks)
+			 			}
+						updater.syncCompleted();
          }
        )
     },
     (error) => {
-      debuger.error(error,"syncRanks")
-      completed([]);
-    }
+			updater.syncCompleted();
+			debuger.error(error,"syncRankInfos");
+		}
   );
+}
 
-  function completed(arr){
-    return new Promise(()=> {return arr});
-  }
-
+function syncRanks(info, remainRanks){
+	debuger.log(remainRanks, "syncRank " + info.groupId);
+	return new Promise((resolve)=>{
+		let className = OrientDB.Class.Rank + info.groupId;
+	  OrientDB.db.class.get(className).then(
+	    (Rank) => {
+	       Rank.list().then(
+	         (ranks)=>{
+	            ranks = ranks.concat(remainRanks);
+	            if(ranks.length >= LIMITED_RANKS_NUM){
+	               let compare = (a, b) => {return b.bank - a.bank};
+	               ranks.sort( compare );
+	               let remains = [];
+	               var minBank = 0;
+	               ranks.forEach( (rank, idx) => {
+	                 if(idx<LIMITED_RANKS_NUM){
+	                    minBank = rank.bank;
+	                    let findIdx = remainRanks.indexOf(rank);
+	                    if(findIdx != -1) move(rank, info.groupId);
+	                 }else{
+	                    remains.push(rank);
+	                    remove(rank);
+	                 }
+	               });
+	               info.status = RankGroupStatus.Full;
+	               info.bankMin = minBank;
+	               updateRankInfo(info);
+	               resolve(remains);
+	            } else {
+	               if(remainRanks.length > 0) remainRanks.forEach( (rank) => { move(rank, info.groupId) } );
+	               resolve([]);
+	            }
+	         }
+	       )
+	    },
+	    (error) => {
+	      debuger.error(error,"syncRanks")
+	      resolve([]);
+	    }
+	  );
+	});
 }
 
 function updateRankInfo(info){
-  OrientDB.db.record.get( info.rid ).then(
+  OrientDB.db.record.get( info["@rid"] ).then(
     (record) => {
-       Util.safeUpdate(record, "bank", info, "string");
-       Util.safeUpdate(record, "status", info, "string");
+       Util.safeUpdate(record, "bankMin", info, "number");
+       Util.safeUpdate(record, "status", info, "number");
        OrientDB.db.record.update(record).then(
-         (result) => debuger.log(info, "rankInfo updated"),
-         (error) => debuger.error(error, "rankInfo updated")
+         (result) => debuger.log(info, "updated"),
+         (error) => debuger.error(error, "updated")
        )
     },
-    (error) => debuger.error(error, "rank updated")
+    (error) => debuger.error(error, "updated")
   );
 }
 
@@ -211,41 +245,61 @@ function create(user,groupId){
   OrientDB.db.class.get(className).then(
     (Rank) => {
        Rank.create({
-         userId:user["@rid"],
+         userId:user.rid,
          profileImg: user.profileImg,
          name: user.name,
          bank: user.getBank
       }).then(
-         (rank) => debuger.log(rank, "rank created"),
-         (error) => debuger.error(error, "rank created")
+         (rank) => {
+					 debuger.log(rank, "created " + groupId);
+					 updateUserRank(rank.userId, groupId);
+				 },
+         (error) => debuger.error(error, "created " + groupId)
        )
     },
-    (error) => debuger.error(error, "rank created")
+    (error) => debuger.error(error, "created " + groupId)
   );
 }
 
 function move(rank,groupId){
   let className = OrientDB.Class.Rank + groupId;
-  OrientDB.db.class.get(className).then(
+	OrientDB.db.index.get( className + OrientDB.Index.RankId ).then(
     (Rank) => {
-       Rank.create({
-         userId:rank.userId,
-         profileImg: rank.profileImg,
-         name: rank.name,
-         bank: rank.bank
-      }).then(
-         (rank) => debuger.log(rank, "rank moved"),
-         (error) => debuger.error(error, "rank moved")
+			  let user = {
+					rid:rank.userId,
+          profileImg: rank.profileImg,
+          name: rank.name,
+          getBank: rank.bank
+				}
+				Rank.get(rank.userId).then(
+					(updateRank) => {
+						if(updateRank == null) create(user,groupId)
+						else update(updateRank, user)
+					},
+					(error) => debuger.error(error, "moved " + groupId)
+				)
+    },
+    (error) => debuger.error(error, "moved " + groupId)
+  );
+}
+
+function updateUserRank(userRid,groupId){
+  OrientDB.db.record.get( userRid ).then(
+    (record) => {
+       record.rankId = groupId;
+       OrientDB.db.record.update(record).then(
+         (result) => debuger.log(record, "user rank updated"),
+         (error) => debuger.error(error, "user rank updated")
        )
     },
-    (error) => debuger.error(error, "rank created")
+    (error) => debuger.error(error, "user rank updated")
   );
 }
 
 function remove(rank){
-  OrientDB.db.record.delete( rank.rid ).then(
-    (record) => debuger.log(rank, "rank deleted"),
-    (error) => debuger.error(error, "rank deleted")
+  OrientDB.db.record.delete( rank["@rid"] ).then(
+    (record) => debuger.log(rank, "deleted"),
+    (error) => debuger.error(error, "deleted")
   );
 }
 
@@ -254,7 +308,7 @@ function update(rank, user){
     (record) => {
        Util.safeUpdate(record, "profileImg", user, "string");
        Util.safeUpdate(record, "name", user, "string");
-       record.bank = user.changeBank;
+       record.bank = user.getBank;
        OrientDB.db.record.update(record).then(
          (result) => debuger.log(user, "rank updated"),
          (error) => debuger.error(error, "rank updated")

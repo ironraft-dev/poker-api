@@ -49,6 +49,9 @@ function createUserClass() {
     }, {
       name: 'rank',
       type: 'Double'
+    }, {
+      name: 'rankId',
+      type: 'String'
     }]).then(function (property) {
       debuger.log(property, 'setup User');
       OrientDB.db.index.create({

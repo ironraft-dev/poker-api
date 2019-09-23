@@ -22,7 +22,8 @@ function createUserClass(){
                 {name: 'snsToken',   type: 'String'},
                 {name: 'bank',       type: 'Double'},
                 {name: 'getBank',    type: 'Double'},
-                {name: 'rank',       type: 'Double'}
+                {name: 'rank',       type: 'Double'},
+                {name: 'rankId',       type: 'String'}
              ]).then(
                  (property) => {
                      debuger.log(property, 'setup User');

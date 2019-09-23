@@ -330,11 +330,13 @@ paths:
           schema:
             type: object
             required:
-                - userId
+                - rid
                 - getBank
                 - changeBank
             properties:
-              userId:
+              rid:
+                type: string
+              rankId:
                 type: string
               getBank:
                 type: number

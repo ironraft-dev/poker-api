@@ -4,6 +4,7 @@ import Response, * as Res from  "./response";
 import * as Validation from  "./validation";
 import * as Util from  "./util";
 import * as Config from  "../../config";
+import * as Rank from  "./rank";
 const debuger = new Debugger();
 debuger.tag = "User"
 
@@ -221,6 +222,14 @@ export function changeBanks(req, res, next, response = new Response()){
       (record) => {
          Util.safeUpdate(record, "getBank" , (record.getBank+user.changeBank) , "number");
          Util.safeUpdate(record, "bank" , (record.bank+user.changeBank) , "number");
+         let ranker = {
+           rid:user.rid,
+           getBank:record.getBank,
+           changeBank:user.changeBank,
+           profileImg:record.profileImg,
+           name:record.name
+         }
+         Rank.updater.updateBank(user);
          OrientDB.db.record.update(record).then(
            (result) => {
               changeBankCompleted();

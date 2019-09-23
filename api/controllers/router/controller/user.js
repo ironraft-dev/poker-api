@@ -28,6 +28,8 @@ var Util = _interopRequireWildcard(require("./util"));
 
 var Config = _interopRequireWildcard(require("../../config"));
 
+var Rank = _interopRequireWildcard(require("./rank"));
+
 var debuger = new _log["default"]();
 debuger.tag = "User";
 
@@ -227,6 +229,14 @@ function changeBanks(req, res, next) {
     OrientDB.db.record.get(user.rid).then(function (record) {
       Util.safeUpdate(record, "getBank", record.getBank + user.changeBank, "number");
       Util.safeUpdate(record, "bank", record.bank + user.changeBank, "number");
+      var ranker = {
+        rid: user.rid,
+        getBank: record.getBank,
+        changeBank: user.changeBank,
+        profileImg: record.profileImg,
+        name: record.name
+      };
+      Rank.updater.updateBank(user);
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {
