@@ -45,9 +45,9 @@ export function log(tag, debugType, value , key = ''){
   let type = typeof value;
   let header = '['+tag + ']' + ((key!='')? " "+key : "") + ' -> ';
   if(type == 'object') {
-    console[debugType](header.prompt);
+    console[debugType](header.prompt + " [" +Date.now().toString()+"]");
     console.dir(value);
   } else {
-    console[debugType](header.prompt + String(value)[debugType]);
+    console[debugType](header.prompt + String(value)[debugType] + " [" +Date.now().toString()+"]");
   }
 }

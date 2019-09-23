@@ -28,6 +28,8 @@ var Util = _interopRequireWildcard(require("./util"));
 
 var Config = _interopRequireWildcard(require("../../config"));
 
+var Rank = _interopRequireWildcard(require("./rank"));
+
 var debuger = new _log["default"]();
 debuger.tag = "User";
 
@@ -102,6 +104,7 @@ function create(req, res, next) {
       name: req.body.name,
       snsToken: req.body.snsToken,
       bank: Config.DEFAULT_BANK,
+      getBank: 0,
       loginToken: Validation.getLoginToken(),
       rank: -1
     }).then(function (user) {
@@ -187,17 +190,17 @@ function updateValues(req, res, next) {
           updateCompleted();
         }, function (error) {
           errors.push(user);
-          debuger.error(user, "user updates record error -> " + Date.now().toString());
+          debuger.error(user, "user updates record error");
           updateCompleted();
         });
       } catch (error) {
         errors.push(user);
-        debuger.error(user, "user updates type error -> " + Date.now().toString());
+        debuger.error(user, "user updates type error");
         updateCompleted();
       }
     }, function (error) {
       errors.push(user);
-      debuger.error(user, "user updates db error -> " + Date.now().toString());
+      debuger.error(user, "user updates db error");
       updateCompleted();
     });
   });
@@ -224,17 +227,26 @@ function changeBanks(req, res, next) {
   var completed = 0;
   users.forEach(function (user) {
     OrientDB.db.record.get(user.rid).then(function (record) {
-      Util.safeUpdate(record, "bank", record.bank + user.bank, "number");
+      Util.safeUpdate(record, "getBank", record.getBank + user.changeBank, "number");
+      Util.safeUpdate(record, "bank", record.bank + user.changeBank, "number");
+      var ranker = {
+        rid: user.rid,
+        getBank: record.getBank,
+        changeBank: user.changeBank,
+        profileImg: record.profileImg,
+        name: record.name
+      };
+      Rank.updater.updateBank(user);
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {
         errors.push(user);
-        debuger.error(user, "user change bank error -> " + Date.now().toString());
+        debuger.error(user, "user change bank error");
         changeBankCompleted();
       });
     }, function (error) {
       errors.push(user);
-      debuger.error(user, "user change bank db error -> " + Date.now().toString());
+      debuger.error(user, "user change bank db error");
       changeBankCompleted();
     });
   });
@@ -247,8 +259,6 @@ function changeBanks(req, res, next) {
 }
 
 function updateAllCompleted(errors, res, response) {
-  debuger.log(errors.length, "errors.length");
-
   if (errors.length > 0) {
     response.code = Res.ResponseCode.DBError;
     response.message = "conflicted updated";

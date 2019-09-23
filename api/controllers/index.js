@@ -62,7 +62,7 @@ _app["default"].use(logErrors);
 _app["default"].use(errorHandler);
 
 function checkAuthorization(req, res, next) {
-  debuger.log(req.method + " | " + req.originalUrl + " -> " + Date.now().toString());
+  debuger.log(req.method + " | " + req.originalUrl);
   if (Config.API_KEY === req.query.api_key) next();else {
     var response = new Res["default"]();
     response.code = Res.ResponseCode.UnauthorizedApiKey;
@@ -76,7 +76,7 @@ function checkAuthorization(req, res, next) {
 }
 
 function logErrors(err, req, res, next) {
-  debuger.error(err, req.method + " | " + req.originalUrl + " -> " + Date.now().toString());
+  debuger.error(err, req.method + " | " + req.originalUrl);
   next(err);
 }
 
@@ -85,4 +85,3 @@ function errorHandler(err, req, res, next) {
 }
 
 Setup.init();
-Setup.index();

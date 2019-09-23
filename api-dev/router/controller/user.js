@@ -4,6 +4,7 @@ import Response, * as Res from  "./response";
 import * as Validation from  "./validation";
 import * as Util from  "./util";
 import * as Config from  "../../config";
+import * as Rank from  "./rank";
 const debuger = new Debugger();
 debuger.tag = "User"
 
@@ -89,6 +90,7 @@ export function create(req, res, next, response = new Response()){
          name: req.body.name,
          snsToken: req.body.snsToken,
          bank: Config.DEFAULT_BANK,
+         getBank: 0,
          loginToken: Validation.getLoginToken(),
          rank: -1
       }).then(
@@ -123,7 +125,6 @@ export function remove(req, res, next, response = new Response()){
 export function update(req, res, next, response = new Response()){
   OrientDB.db.record.get( req.body.rid ).then(
     (record) => {
-
        var validation = Validation.checkId(req.params.userId, record.id);
        if(validation === false){
          next(Res.getValidationError(Res.ResponseCode.ValidationUserId, response));
@@ -182,19 +183,19 @@ export function updateValues(req, res, next, response = new Response()){
              },
              (error) => {
                 errors.push(user);
-                debuger.error(user, "user updates record error -> " +Date.now().toString());
+                debuger.error(user, "user updates record error");
                 updateCompleted();
              }
            )
          } catch (error) {
            errors.push(user);
-           debuger.error(user,"user updates type error -> " +Date.now().toString());
+           debuger.error(user,"user updates type error");
            updateCompleted();
          }
       },
       (error) => {
          errors.push(user);
-         debuger.error(user, "user updates db error -> " +Date.now().toString());
+         debuger.error(user, "user updates db error");
          updateCompleted();
       }
     )
@@ -219,21 +220,30 @@ export function changeBanks(req, res, next, response = new Response()){
   users.forEach( (user) => {
     OrientDB.db.record.get( user.rid ).then(
       (record) => {
-         Util.safeUpdate(record, "bank" , (record.bank+user.bank) , "number");
+         Util.safeUpdate(record, "getBank" , (record.getBank+user.changeBank) , "number");
+         Util.safeUpdate(record, "bank" , (record.bank+user.changeBank) , "number");
+         let ranker = {
+           rid:user.rid,
+           getBank:record.getBank,
+           changeBank:user.changeBank,
+           profileImg:record.profileImg,
+           name:record.name
+         }
+         Rank.updater.updateBank(user);
          OrientDB.db.record.update(record).then(
            (result) => {
               changeBankCompleted();
            },
            (error) => {
               errors.push(user);
-              debuger.error(user, "user change bank error -> " +Date.now().toString());
+              debuger.error(user, "user change bank error");
               changeBankCompleted();
            }
          )
       },
       (error) => {
          errors.push(user);
-         debuger.error(user, "user change bank db error -> " +Date.now().toString());
+         debuger.error(user, "user change bank db error");
          changeBankCompleted();
       }
     )

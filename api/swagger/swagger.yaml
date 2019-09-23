@@ -18,6 +18,8 @@ consumes:
 produces:
   - application/json
 paths:
+  
+          
   /users:
     x-swagger-router-controller: poker
     get:
@@ -272,11 +274,11 @@ paths:
               type: object
               required:
                 - rid
-                - bank
+                - changeBank
               properties:
                 rid:
                   type: string
-                bank:
+                changeBank:
                   type: number
           required: true
       responses:
@@ -290,7 +292,119 @@ paths:
           $ref: "#/responses/ConflictedError"
         500:
           $ref: "#/responses/ServerError"
+  
+  /ranks:
+    x-swagger-router-controller: poker
+    get:
+      description: returns ranks
+      parameters:
+        - name: groupId
+          in: query
+          type: string
+          required: true
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
           
+  /ranks/add/{serverId}:
+    x-swagger-router-controller: poker
+    put:
+      description: add rank
+      parameters:
+        - name: serverId
+          in: path
+          type: string
+          required: true
+        - name: serverkey
+          in: header
+          type: string
+          required: true
+        - name: rank
+          in: body
+          schema:
+            type: object
+            required:
+                - rid
+                - getBank
+                - changeBank
+            properties:
+              rid:
+                type: string
+              rankId:
+                type: string
+              getBank:
+                type: number
+              changeBank:
+                type: number
+              profileImg:
+                type: string
+              name:
+                type: string
+              
+          required: true
+      responses:
+        401:
+           $ref: "#/responses/UnauthorizedError"
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+  
+  /ranks/reset/{serverId}:
+    x-swagger-router-controller: poker
+    get:
+      description: update users bank
+      parameters:
+        - name: serverId
+          in: path
+          type: string
+          required: true
+        - name: serverkey
+          in: header
+          type: string
+          required: true
+
+      responses:
+        401:
+           $ref: "#/responses/UnauthorizedError"
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+  
+  /ranks/sync/{serverId}:
+    x-swagger-router-controller: poker
+    get:
+      description: update users bank
+      parameters:
+        - name: serverId
+          in: path
+          type: string
+          required: true
+        - name: serverkey
+          in: header
+          type: string
+          required: true
+
+      responses:
+        401:
+           $ref: "#/responses/UnauthorizedError"
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
   /swagger:
     x-swagger-pipe: swagger_raw
 

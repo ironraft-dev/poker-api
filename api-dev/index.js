@@ -20,7 +20,6 @@ var corsOptions = {
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
 }
 
-
 app.use(cors(corsOptions));
 app.use('/api',checkAuthorization);
 app.use(bodyParser.urlencoded({extended: true}));
@@ -35,7 +34,7 @@ app.use(errorHandler);
 
 
 function checkAuthorization(req, res, next) {
-  debuger.log(req.method + " | " + req.originalUrl + " -> " +Date.now().toString());
+  debuger.log(req.method + " | " + req.originalUrl);
   if(Config.API_KEY === req.query.api_key) next();
   else {
     let response = new Response();
@@ -47,7 +46,7 @@ function checkAuthorization(req, res, next) {
 }
 
 function logErrors(err, req, res, next) {
-  debuger.error(err, req.method + " | " + req.originalUrl + " -> " +Date.now().toString());
+  debuger.error(err, req.method + " | " + req.originalUrl);
   next(err);
 }
 
@@ -55,4 +54,3 @@ function errorHandler(err, req, res, next) {
   res.status(err.statusCode).json(err.response);
 }
 Setup.init();
-Setup.index();
