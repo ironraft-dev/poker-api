@@ -44,7 +44,7 @@ var UpdaterStatus = Object.freeze({
   Updating: 1,
   Writable: 2
 });
-var LIMITED_RANKS_NUM = 3;
+var LIMITED_RANKS_NUM = 10;
 
 var RankUpdater =
 /*#__PURE__*/
