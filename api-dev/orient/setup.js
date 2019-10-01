@@ -23,6 +23,7 @@ function createUserClass(){
                 {name: 'bank',       type: 'Double'},
                 {name: 'getBank',    type: 'Double'},
                 {name: 'rank',       type: 'Double'},
+                {name: 'character',  type: 'String'},
                 {name: 'rankId',       type: 'String'}
              ]).then(
                  (property) => {
@@ -91,6 +92,7 @@ function addRankClass(id){
               {name: 'userId',     type: 'String'},
               {name: 'profileImg', type: 'String'},
               {name: 'name',       type: 'String'},
+              {name: 'character',  type: 'String'},
               {name: 'bank',       type: 'Double'}
            ]).then(
                (property) => {

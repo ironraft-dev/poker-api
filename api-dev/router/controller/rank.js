@@ -248,7 +248,8 @@ function create(user,groupId){
          userId:user.rid,
          profileImg: user.profileImg,
          name: user.name,
-         bank: user.getBank
+         bank: user.getBank,
+				 character:  user.character
       }).then(
          (rank) => {
 					 debuger.log(rank, "created " + groupId);
@@ -269,7 +270,8 @@ function move(rank,groupId){
 					rid:rank.userId,
           profileImg: rank.profileImg,
           name: rank.name,
-          getBank: rank.bank
+          getBank: rank.bank,
+					character: rank.character
 				}
 				Rank.get(rank.userId).then(
 					(updateRank) => {
@@ -308,6 +310,7 @@ function update(rank, user){
     (record) => {
        Util.safeUpdate(record, "profileImg", user, "string");
        Util.safeUpdate(record, "name", user, "string");
+			 Util.safeUpdate(record, "character", user, "string");
        record.bank = user.getBank;
        OrientDB.db.record.update(record).then(
          (result) => debuger.log(user, "rank updated"),
