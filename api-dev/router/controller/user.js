@@ -229,7 +229,7 @@ export function changeBanks(req, res, next, response = new Response()){
            profileImg:record.profileImg,
            name:record.name
          }
-         Rank.updater.updateBank(user);
+         Rank.updater.updateBank(ranker);
          OrientDB.db.record.update(record).then(
            (result) => {
               changeBankCompleted();

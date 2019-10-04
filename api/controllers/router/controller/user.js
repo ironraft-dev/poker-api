@@ -236,7 +236,7 @@ function changeBanks(req, res, next) {
         profileImg: record.profileImg,
         name: record.name
       };
-      Rank.updater.updateBank(user);
+      Rank.updater.updateBank(ranker);
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {

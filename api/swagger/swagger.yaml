@@ -3,7 +3,7 @@ info:
   version: "0.0.2"
   title: Poker Api
 # during dev, should point to your local machine
-host: poker.ironraft.com
+host: api.ironraft.com
 # basePath prefixes all resource paths
 basePath: /api
 #
