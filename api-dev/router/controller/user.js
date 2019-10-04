@@ -54,7 +54,7 @@ export function record(req, res, next, rid = req.query.rid , response = new Resp
         if(newLoginToken == null){
           response.code = Res.ResponseCode.Success;
           response.data = record;
-          response.data.loginToken = "";
+          //response.data.loginToken = "";
           res.status(Res.StatusCode.Success).json(response);
         }else{
           Util.safeUpdate(record, "loginToken", newLoginToken , "string");
@@ -92,7 +92,7 @@ export function create(req, res, next, response = new Response()){
          bank: Config.DEFAULT_BANK,
          getBank: 0,
          loginToken: Validation.getLoginToken(),
-         character: req.body.character
+         character: req.body.character,
          rank: -1
       }).then(
          (user)=>{
