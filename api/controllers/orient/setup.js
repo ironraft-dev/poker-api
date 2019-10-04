@@ -50,6 +50,9 @@ function createUserClass() {
       name: 'rank',
       type: 'Double'
     }, {
+      name: 'character',
+      type: 'String'
+    }, {
       name: 'rankId',
       type: 'String'
     }]).then(function (property) {
@@ -118,6 +121,9 @@ function addRankClass(id) {
       type: 'String'
     }, {
       name: 'name',
+      type: 'String'
+    }, {
+      name: 'character',
       type: 'String'
     }, {
       name: 'bank',
