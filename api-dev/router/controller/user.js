@@ -92,7 +92,7 @@ export function create(req, res, next, response = new Response()){
          bank: Config.DEFAULT_BANK,
          getBank: 0,
          loginToken: Validation.getLoginToken(),
-         character: req.body.character
+         character: req.body.character,
          rank: -1
       }).then(
          (user)=>{
