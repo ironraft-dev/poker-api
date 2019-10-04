@@ -79,6 +79,8 @@ paths:
                 type: string
               snsToken:
                 type: string
+              character:
+                type: string
           required: true
 
       responses:
@@ -93,7 +95,7 @@ paths:
   
 
     put:
-      description: create new user
+      description: update user
       parameters:
         - name: loginToken
           in: header
@@ -122,6 +124,8 @@ paths:
                 type: number
               rank:
                 type: number
+              character:
+                type: string
           required: true
 
       responses:
