@@ -59,7 +59,8 @@ function _checkAccessToken() {
         switch (_context.prev = _context.next) {
           case 0:
             _context.prev = 0;
-            _context.next = 3;
+            debuger.log(token, "user token");
+            _context.next = 4;
             return _axios["default"].get(Config.FACEBOOK_DEBUG_TOKEN_API, {
               params: {
                 'input_token': Config.FACEBOOK_APP_TOKEN,
@@ -67,23 +68,25 @@ function _checkAccessToken() {
               }
             });
 
-          case 3:
+          case 4:
             response = _context.sent;
+            debuger.log(response, "response");
             if (!response) callback(false);else callback(true);
-            _context.next = 10;
+            _context.next = 13;
             break;
 
-          case 7:
-            _context.prev = 7;
+          case 9:
+            _context.prev = 9;
             _context.t0 = _context["catch"](0);
+            debuger.log(_context.t0, "response");
             callback(false);
 
-          case 10:
+          case 13:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 7]]);
+    }, _callee, null, [[0, 9]]);
   }));
   return _checkAccessToken.apply(this, arguments);
 }

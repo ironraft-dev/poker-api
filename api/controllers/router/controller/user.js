@@ -73,8 +73,8 @@ function record(req, res, next) {
     if (validation === true) {
       if (newLoginToken == null) {
         response.code = Res.ResponseCode.Success;
-        response.data = record;
-        response.data.loginToken = "";
+        response.data = record; //response.data.loginToken = "";
+
         res.status(Res.StatusCode.Success).json(response);
       } else {
         Util.safeUpdate(record, "loginToken", newLoginToken, "string");
@@ -106,6 +106,7 @@ function create(req, res, next) {
       bank: Config.DEFAULT_BANK,
       getBank: 0,
       loginToken: Validation.getLoginToken(),
+      character: req.body.character,
       rank: -1
     }).then(function (user) {
       response.code = Res.ResponseCode.Success;
@@ -152,6 +153,7 @@ function update(req, res, next) {
       Util.safeUpdate(record, "snsToken", req.body, "string");
       Util.safeUpdate(record, "bank", req.body, "number");
       Util.safeUpdate(record, "rank", req.body, "number");
+      Util.safeUpdate(record, "character", req.body, "string");
     } catch (error) {
       next(Res.getBadRequestError(error, Res.ResponseCode.InvalidDataType, response));
       return;
@@ -234,9 +236,10 @@ function changeBanks(req, res, next) {
         getBank: record.getBank,
         changeBank: user.changeBank,
         profileImg: record.profileImg,
-        name: record.name
+        name: record.name,
+        character: record.character
       };
-      Rank.updater.updateBank(user);
+      Rank.updater.updateBank(ranker);
       OrientDB.db.record.update(record).then(function (result) {
         changeBankCompleted();
       }, function (error) {

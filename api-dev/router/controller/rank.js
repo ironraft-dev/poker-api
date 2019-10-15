@@ -18,7 +18,7 @@ const UpdaterStatus = Object.freeze ({
   Writable: 2
 });
 
-const LIMITED_RANKS_NUM = 3;
+const LIMITED_RANKS_NUM = 10;
 
 export class RankUpdater {
   constructor() {

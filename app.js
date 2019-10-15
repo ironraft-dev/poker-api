@@ -16,8 +16,7 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   if (err) { throw err; }
   app.use(SwaggerUi(swaggerExpress.runner.swagger));
   swaggerExpress.register(app);
-
-  var port = process.env.PORT || 10010;
+  var port = process.env.PORT || 2083;
   app.listen(port);
   console.log('SwaggerExpress start http://127.0.0.1:' + port + '/docs');
 
