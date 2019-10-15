@@ -73,8 +73,8 @@ function record(req, res, next) {
     if (validation === true) {
       if (newLoginToken == null) {
         response.code = Res.ResponseCode.Success;
-        response.data = record;
-        response.data.loginToken = "";
+        response.data = record; //response.data.loginToken = "";
+
         res.status(Res.StatusCode.Success).json(response);
       } else {
         Util.safeUpdate(record, "loginToken", newLoginToken, "string");

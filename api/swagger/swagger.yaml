@@ -190,6 +190,8 @@ paths:
             properties:
               profileImg:
                 type: string
+              character:
+                type: string
               name:
                 type: string
               snsToken:

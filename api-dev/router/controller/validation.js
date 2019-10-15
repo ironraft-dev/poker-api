@@ -23,15 +23,19 @@ export function checkServerKey (serverId, serverKey) {
 
 export async function checkAccessToken (token, callback) {
   try {
+    debuger.log(token, "user token");
     const response = await axios.get(Config.FACEBOOK_DEBUG_TOKEN_API,  {
         params: {
           'input_token': Config.FACEBOOK_APP_TOKEN,
           'access_token': token
         }
     })
+    debuger.log(response, "response");
     if( !response ) callback(false);
     else callback(true);
   } catch(err) {
+
+    debuger.log(err, "response");
     callback(false);
   }
 }
