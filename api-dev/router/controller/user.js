@@ -164,6 +164,49 @@ export function update(req, res, next, response = new Response()){
   );
 }
 
+export function updateBank(req, res, next, response = new Response()){
+  OrientDB.db.record.get( req.body.rid ).then(
+    (record) => {
+       var validation = Validation.checkId(req.params.userId, record.id);
+       if(validation === false){
+         next(Res.getValidationError(Res.ResponseCode.ValidationUserId, response));
+         return;
+       }
+       validation = Validation.checkLoginToken(req.headers.logintoken, record.loginToken);
+       if(validation === false){
+         next(Res.getValidationError(Res.ResponseCode.ValidationLoginToken, response));
+         return;
+       }
+       if(record.bank > 0){
+         response.code = Res.ResponseCode.InvalidDataType;
+         response.message = "bank update is only possible when zero";
+         response.data = errors;
+         next({statusCode: Res.StatusCode.NotAcceptable, response:response});
+         return;
+       }
+       try {
+         Util.safeUpdate(record, "bank", req.body, "number");
+       } catch (error){
+         next(Res.getBadRequestError(error,Res.ResponseCode.InvalidDataType, response));
+         return;
+       }
+       OrientDB.db.record.update(record).then(
+         (result) => {
+           response.code = Res.ResponseCode.Success;
+           response.data = record;
+           res.status(Res.StatusCode.Success).json(response);
+         },
+         (error) => {
+            next(Res.getDBError(error, response));
+         }
+       )
+    },
+    (error) => {
+       next(Res.getBadRequestError(error,Res.ResponseCode.UndefinedKey, response));
+    }
+  );
+}
+
 export function updateValues(req, res, next, response = new Response()){
   let validation = Validation.checkServerKey(req.params.serverId, req.headers.serverkey);
   if(validation === false){
