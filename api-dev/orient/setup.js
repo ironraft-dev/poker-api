@@ -5,8 +5,32 @@ const debuger = new Debugger();
 debuger.tag = "DB Setup"
 
 export function init(){
+   createContentClass();
    createUserClass();
    createRank();
+}
+
+function createContentClass(){
+   OrientDB.db.class.create(OrientDB.Class.Content)
+      .then(
+         (User) => {
+             debuger.log('created Content');
+             User.property.create([
+                {name: 'id',    type: 'String'},
+                {name: 'image', type: 'String'},
+                {name: 'title',  type: 'String'},
+                {name: 'description',  type: 'String'},
+                {name: 'pageUrl',  type: 'String'}
+
+             ]).then(
+                 (property) => {
+                     debuger.log(property, 'setup Content');
+                 }
+             );
+         },
+         (error) => debuger.error(error.message, 'created Content')
+      );
+
 }
 
 function createUserClass(){
@@ -24,7 +48,7 @@ function createUserClass(){
                 {name: 'getBank',    type: 'Double'},
                 {name: 'rank',       type: 'Double'},
                 {name: 'character',  type: 'String'},
-                {name: 'rankId',       type: 'String'}
+                {name: 'rankId',     type: 'String'}
              ]).then(
                  (property) => {
                      debuger.log(property, 'setup User');
@@ -49,7 +73,7 @@ function createRank(){
             RankInfo.property.create([
                {name: 'bankMin', type: 'Double'},
                {name: 'groupId', type: 'String'},
-               {name: 'status', type: 'Integer'}
+               {name: 'status',  type: 'Integer'}
             ]).then(
                 (property) => {
                     debuger.log(property, 'setup RankInfo');

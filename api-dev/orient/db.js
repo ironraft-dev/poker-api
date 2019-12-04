@@ -11,6 +11,7 @@ const dbServer = OrientDB({
 
 export const Class = Object.freeze ({
 	User: "User",
+  Content: "Content",
   Rank: "Rank",
   RankInfo: "RankInfo"
 });
