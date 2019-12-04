@@ -180,7 +180,6 @@ export function updateBank(req, res, next, response = new Response()){
        if(record.bank > 0){
          response.code = Res.ResponseCode.InvalidDataType;
          response.message = "bank update is only possible when zero";
-         response.data = errors;
          next({statusCode: Res.StatusCode.NotAcceptable, response:response});
          return;
        }

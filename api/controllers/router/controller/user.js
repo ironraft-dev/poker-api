@@ -13,6 +13,7 @@ exports.record = record;
 exports.create = create;
 exports.remove = remove;
 exports.update = update;
+exports.updateBank = updateBank;
 exports.updateValues = updateValues;
 exports.changeBanks = changeBanks;
 
@@ -154,6 +155,52 @@ function update(req, res, next) {
       Util.safeUpdate(record, "bank", req.body, "number");
       Util.safeUpdate(record, "rank", req.body, "number");
       Util.safeUpdate(record, "character", req.body, "string");
+    } catch (error) {
+      next(Res.getBadRequestError(error, Res.ResponseCode.InvalidDataType, response));
+      return;
+    }
+
+    OrientDB.db.record.update(record).then(function (result) {
+      response.code = Res.ResponseCode.Success;
+      response.data = record;
+      res.status(Res.StatusCode.Success).json(response);
+    }, function (error) {
+      next(Res.getDBError(error, response));
+    });
+  }, function (error) {
+    next(Res.getBadRequestError(error, Res.ResponseCode.UndefinedKey, response));
+  });
+}
+
+function updateBank(req, res, next) {
+  var response = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : new Res["default"]();
+  OrientDB.db.record.get(req.body.rid).then(function (record) {
+    var validation = Validation.checkId(req.params.userId, record.id);
+
+    if (validation === false) {
+      next(Res.getValidationError(Res.ResponseCode.ValidationUserId, response));
+      return;
+    }
+
+    validation = Validation.checkLoginToken(req.headers.logintoken, record.loginToken);
+
+    if (validation === false) {
+      next(Res.getValidationError(Res.ResponseCode.ValidationLoginToken, response));
+      return;
+    }
+
+    if (record.bank > 0) {
+      response.code = Res.ResponseCode.InvalidDataType;
+      response.message = "bank update is only possible when zero";
+      next({
+        statusCode: Res.StatusCode.NotAcceptable,
+        response: response
+      });
+      return;
+    }
+
+    try {
+      Util.safeUpdate(record, "bank", req.body, "number");
     } catch (error) {
       next(Res.getBadRequestError(error, Res.ResponseCode.InvalidDataType, response));
       return;

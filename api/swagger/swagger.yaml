@@ -120,10 +120,7 @@ paths:
                 type: string
               snsToken:
                 type: string
-              bank:
-                type: number
-              rank:
-                type: number
+        
               character:
                 type: string
           required: true
@@ -169,6 +166,47 @@ paths:
           $ref: "#/responses/ClientError"
         500:
           $ref: "#/responses/ServerError"
+          
+          
+  /users/updatebank/{userId}:
+    x-swagger-router-controller: poker
+
+    put:
+      description: update user bank
+      parameters:
+        - name: loginToken
+          in: header
+          type: string
+          required: true
+        - name: userId
+          in: path
+          type: string
+          required: true
+        - name: user
+          in: body
+          schema:
+            type: object
+            required:
+              - rid
+            properties:
+              rid:
+                type: string
+              bank:
+                type:  number
+          
+          required: true
+
+      responses:
+        401:
+           $ref: '#/responses/UnauthorizedError'
+        200:
+           $ref: "#/responses/Success"
+        400:
+          $ref: "#/responses/ClientError"
+        500:
+          $ref: "#/responses/ServerError"
+            
+    
   
   /users/autosign/{userId}:
     x-swagger-router-controller: poker

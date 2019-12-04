@@ -41,6 +41,9 @@ router.put('/ranks/add/:serverId', function (req, res, next) {
 router.put('/users/:userId', function (req, res, next) {
   return User.update(req, res, next);
 });
+router.put('/users/updatebank/:userId', function (req, res, next) {
+  return User.updateBank(req, res, next);
+});
 router.put('/users/update/:serverId', function (req, res, next) {
   return User.updateValues(req, res, next);
 });
