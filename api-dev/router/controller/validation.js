@@ -24,7 +24,7 @@ export function checkServerKey (serverId, serverKey) {
 export async function checkAccessToken (token, callback) {
   try {
     debuger.log(token, "user token");
-    const response = await axios.get(Config.FACEBOOK_DEBUG_TOKEN_API,  {
+    const response = await axios.get(Config.FACEBOOK_TOKEN_API,  {
         params: {
           'input_token': Config.FACEBOOK_APP_TOKEN,
           'access_token': token
